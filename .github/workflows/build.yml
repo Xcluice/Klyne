@@ -27,21 +27,7 @@ jobs:
         run: base64 -d app/release.jks.b64 > app/release.jks
 
       - name: Build release APK
-        run: |
-          set -o pipefail
-          gradle :app:assembleRelease --no-daemon --stacktrace -PappCode=${{ github.run_number }} -PappVersion=1.0.${{ github.run_number }} 2>&1 | tee gradle_build.log
-
-      - name: Save failure log to ci-diag branch
-        if: failure()
-        run: |
-          grep -E "(^e:|FAILURE:|What went wrong|Execution failed|error:|Unresolved|Exception)" -A 3 gradle_build.log | tail -n 100 > error_summary.txt || tail -n 100 gradle_build.log > error_summary.txt
-          git config user.name "Klyne CI"
-          git config user.email "xcluice@gmail.com"
-          git checkout --orphan ci-diag
-          git rm -rf --cached . >/dev/null 2>&1 || true
-          git add -f error_summary.txt
-          git commit -m "ci: build error summary"
-          git push origin HEAD:refs/heads/ci-diag --force
+        run: gradle :app:assembleRelease --no-daemon --stacktrace -PappCode=${{ github.run_number }} -PappVersion=1.0.${{ github.run_number }}
 
       - name: Rename APK
         run: cp app/build/outputs/apk/release/app-release.apk Klyne-release.apk
@@ -54,7 +40,7 @@ jobs:
           name: Klyne-release-apk
           path: Klyne-release.apk
 
-      - name: Clean up diagnostic release if present
+      - name: Clean up diagnostic artifacts if present
         env:
           GH_TOKEN: ${{ github.token }}
         run: |

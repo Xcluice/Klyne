@@ -1,6 +1,5 @@
 package com.xcluice.klyne.ui
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
@@ -319,7 +318,7 @@ fun AppDrawerOverlay(
                     }
 
                     // Floating letter bubble
-                    AnimatedVisibility(
+                    androidx.compose.animation.AnimatedVisibility(
                         visible = activeLetter != null,
                         enter = fadeIn(),
                         exit = fadeOut(),
