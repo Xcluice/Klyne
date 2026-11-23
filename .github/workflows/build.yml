@@ -27,7 +27,24 @@ jobs:
         run: base64 -d app/release.jks.b64 > app/release.jks
 
       - name: Build release APK
-        run: gradle :app:assembleRelease --no-daemon --stacktrace -PappCode=${{ github.run_number }} -PappVersion=1.0.${{ github.run_number }}
+        run: |
+          set -o pipefail
+          gradle :app:assembleRelease --no-daemon --stacktrace -PappCode=${{ github.run_number }} -PappVersion=1.0.${{ github.run_number }} 2>&1 | tee gradle_build.log
+
+      - name: Capture failure log
+        if: failure()
+        run: |
+          grep -E "(^e:|FAILURE:|What went wrong|Execution failed|error:|Unresolved|Exception)" -A 3 gradle_build.log | tail -n 80 > error_summary.txt || tail -n 80 gradle_build.log > error_summary.txt
+          cat error_summary.txt
+
+      - name: Publish failure diagnostic
+        if: failure()
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ci-diag
+          name: CI Diagnostic
+          prerelease: true
+          body_path: error_summary.txt
 
       - name: Rename APK
         run: cp app/build/outputs/apk/release/app-release.apk Klyne-release.apk
