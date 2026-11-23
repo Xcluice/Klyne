@@ -31,20 +31,17 @@ jobs:
           set -o pipefail
           gradle :app:assembleRelease --no-daemon --stacktrace -PappCode=${{ github.run_number }} -PappVersion=1.0.${{ github.run_number }} 2>&1 | tee gradle_build.log
 
-      - name: Capture failure log
+      - name: Save failure log to ci-diag branch
         if: failure()
         run: |
-          grep -E "(^e:|FAILURE:|What went wrong|Execution failed|error:|Unresolved|Exception)" -A 3 gradle_build.log | tail -n 80 > error_summary.txt || tail -n 80 gradle_build.log > error_summary.txt
-          cat error_summary.txt
-
-      - name: Publish failure diagnostic
-        if: failure()
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ci-diag
-          name: CI Diagnostic
-          prerelease: true
-          body_path: error_summary.txt
+          grep -E "(^e:|FAILURE:|What went wrong|Execution failed|error:|Unresolved|Exception)" -A 3 gradle_build.log | tail -n 100 > error_summary.txt || tail -n 100 gradle_build.log > error_summary.txt
+          git config user.name "Klyne CI"
+          git config user.email "xcluice@gmail.com"
+          git checkout --orphan ci-diag
+          git rm -rf --cached . >/dev/null 2>&1 || true
+          git add -f error_summary.txt
+          git commit -m "ci: build error summary"
+          git push origin HEAD:refs/heads/ci-diag --force
 
       - name: Rename APK
         run: cp app/build/outputs/apk/release/app-release.apk Klyne-release.apk
@@ -56,6 +53,13 @@ jobs:
         with:
           name: Klyne-release-apk
           path: Klyne-release.apk
+
+      - name: Clean up diagnostic release if present
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete ci-diag -y --cleanup-tag || true
+          git push origin --delete ci-diag || true
 
       - name: Publish release
         uses: softprops/action-gh-release@v2
