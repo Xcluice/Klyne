@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Klyne</string>
+    <string name="accessibility_service_label">Klyne Gestures</string>
+    <string name="accessibility_service_description">Enables double-tap to lock screen, notification shade expansion, and quick gesture actions in Klyne Launcher.</string>
+    <string name="device_admin_label">Klyne Screen Lock</string>
+</resources>
