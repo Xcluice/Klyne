@@ -108,7 +108,7 @@ class AppRepository(private val context: Context) {
     private fun extractWallpaperAccent() {
         runCatching {
             val wm = WallpaperManager.getInstance(context)
-            val drawable = wm.peekDrawable() ?: return
+            val drawable = wm.peekDrawable() ?: return@runCatching
             val bmp = drawableToBitmap(drawable, 72)
             val palette = Palette.from(bmp).generate()
             val muted = palette.mutedSwatch?.rgb

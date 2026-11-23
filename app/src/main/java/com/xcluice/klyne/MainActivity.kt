@@ -37,7 +37,6 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -89,6 +88,7 @@ import com.xcluice.klyne.ui.SettingsScreen
 import com.xcluice.klyne.ui.SquircleAppTile
 import com.xcluice.klyne.ui.SquircleFolderTile
 import com.xcluice.klyne.ui.rememberKlynePalette
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.UUID
 
@@ -158,7 +158,7 @@ private fun KlyneRoot(
 
     LaunchedEffect(toastMsg) {
         if (toastMsg != null) {
-            kotlinx.coroutines.delay(2400)
+            delay(2400)
             toastMsg = null
         }
     }
@@ -211,8 +211,9 @@ private fun KlyneRoot(
     }
 
     // Force Update Gate
-    pendingRelease?.let { release ->
-        ForceUpdateScreen(release = release, palette = palette)
+    val releaseToInstall = pendingRelease
+    if (releaseToInstall != null) {
+        ForceUpdateScreen(release = releaseToInstall, palette = palette)
         return
     }
 
@@ -229,7 +230,6 @@ private fun KlyneRoot(
     val statusPad = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val navPad = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
 
-    // Background layer (OLED matte solidifies background; Frosted/Adaptive keep live wallpaper visible)
     val rootBg = if (settings.surfaceMode == SurfaceMode.OLED_MATTE) palette.drawerBackground else Color.Transparent
 
     Box(
@@ -237,7 +237,6 @@ private fun KlyneRoot(
             .fillMaxSize()
             .background(rootBg)
     ) {
-        // Home Screen Workspace
         val homeApps = remember(settings.homeAppKeys, appMap, settings.hiddenPackages) {
             settings.homeAppKeys.mapNotNull { appMap[it] }.filter { it.packageName !in settings.hiddenPackages }
         }
@@ -285,7 +284,6 @@ private fun KlyneRoot(
                 }
                 .padding(top = statusPad + 6.dp, bottom = navPad + 10.dp)
         ) {
-            // Multi-page One UI 9 Home Workspace
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier.weight(1f).fillMaxWidth()
@@ -345,7 +343,6 @@ private fun KlyneRoot(
                 }
             }
 
-            // Page indicator dots
             if (pageCount > 1) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
@@ -366,7 +363,6 @@ private fun KlyneRoot(
                 }
             }
 
-            // Optional One UI 9 Home Screen Finder Search Pill
             if (settings.showHomeSearchPill) {
                 FinderSearchPill(
                     palette = palette,
@@ -378,14 +374,12 @@ private fun KlyneRoot(
                 )
             }
 
-            // One UI 9 Floating Frosted Dock (Favorites Bar)
             if (settings.showDock && dockApps.isNotEmpty()) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = settings.dockPaddingDp.dp, vertical = 6.dp)
                 ) {
-                    // Frosted pill backdrop
                     if (settings.dockBlur) {
                         Box(
                             modifier = Modifier
@@ -424,7 +418,6 @@ private fun KlyneRoot(
             }
         }
 
-        // App Drawer Overlay
         AnimatedVisibility(
             visible = drawerOpen,
             enter = slideInVertically(
@@ -452,7 +445,6 @@ private fun KlyneRoot(
             )
         }
 
-        // One UI 9 Pop-up Folder Overlay
         val currentFolder = settings.folders.firstOrNull { it.id == openFolderId }
         AnimatedVisibility(
             visible = currentFolder != null,
@@ -479,7 +471,6 @@ private fun KlyneRoot(
             }
         }
 
-        // Home Up–Style Quick Home Editor Overlay
         AnimatedVisibility(
             visible = homeEditorOpen,
             enter = fadeIn(),
@@ -513,7 +504,6 @@ private fun KlyneRoot(
             )
         }
 
-        // App Quick-Action Context Menu
         contextMenuApp?.let { app ->
             AppActionPopup(
                 app = app,
@@ -548,7 +538,6 @@ private fun KlyneRoot(
             )
         }
 
-        // Double-Tap Lock Permission Helper
         if (lockPermissionPrompt) {
             LockPermissionDialog(
                 palette = palette,
@@ -564,7 +553,6 @@ private fun KlyneRoot(
             )
         }
 
-        // Full Settings Screen
         AnimatedVisibility(
             visible = settingsOpen,
             enter = slideInVertically(initialOffsetY = { it / 4 }) + fadeIn(),
@@ -587,7 +575,6 @@ private fun KlyneRoot(
             )
         }
 
-        // Floating monochrome toast pill
         AnimatedVisibility(
             visible = toastMsg != null,
             enter = fadeIn() + slideInVertically { -it },
