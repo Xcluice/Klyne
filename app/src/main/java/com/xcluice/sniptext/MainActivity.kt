@@ -131,6 +131,7 @@ private fun SnipHomeScreen() {
     fun updateSettings(newSettings: SnipSettings) {
         settings = newSettings
         store.saveSettings(newSettings)
+        SnipAccessibilityService.instance?.reloadSettings()
     }
 
     LazyColumn(
@@ -148,6 +149,7 @@ private fun SnipHomeScreen() {
             StatusHeroCard(
                 serviceEnabled = serviceEnabled,
                 ignoringBattery = ignoringBattery,
+                shakeEnabled = settings.shakeEnabled,
                 onOpenAccessibility = {
                     context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
                 },
@@ -158,7 +160,7 @@ private fun SnipHomeScreen() {
                     } else {
                         Toast.makeText(
                             context,
-                            "Enable SnipText Volume Trigger in Accessibility first",
+                            "Enable SnipText Trigger in Accessibility first",
                             Toast.LENGTH_SHORT
                         ).show()
                         context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
@@ -222,7 +224,7 @@ private fun SnipHomeScreen() {
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = "No grabs yet. Press Volume Up + Volume Down anywhere to select text on screen.",
+                        text = "No grabs yet. Shake your phone twice anywhere to select text on screen.",
                         color = SnipColors.TextSecondary,
                         fontSize = 13.sp,
                         lineHeight = 19.sp,
@@ -295,7 +297,7 @@ private fun HeaderSection(serviceEnabled: Boolean) {
                 letterSpacing = (-0.5).sp
             )
             Text(
-                text = "Vol Up + Vol Down screen grabber",
+                text = "Double-Shake screen text grabber",
                 color = SnipColors.TextSecondary,
                 fontSize = 13.sp
             )
@@ -345,6 +347,7 @@ private fun HeaderSection(serviceEnabled: Boolean) {
 private fun StatusHeroCard(
     serviceEnabled: Boolean,
     ignoringBattery: Boolean,
+    shakeEnabled: Boolean,
     onOpenAccessibility: () -> Unit,
     onTestSnip: () -> Unit,
     onRequestBatteryOpt: () -> Unit
@@ -361,16 +364,20 @@ private fun StatusHeroCard(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
-                    text = if (serviceEnabled) "Trigger Ready" else "Enable Volume Trigger",
+                    text = if (serviceEnabled) "Trigger Ready" else "Enable Screen Trigger",
                     color = SnipColors.TextPrimary,
                     fontSize = 17.sp,
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
                     text = if (serviceEnabled) {
-                        "Tap Volume Up + Volume Down together anywhere to freeze the screen and select text."
+                        if (shakeEnabled) {
+                            "Shake your phone twice anywhere to freeze the screen and select text."
+                        } else {
+                            "Tap Volume Up + Volume Down together anywhere to freeze the screen and select text."
+                        }
                     } else {
-                        "Turn on SnipText Volume Trigger in Accessibility Settings so the app can detect the simultaneous volume-button press."
+                        "Turn on SnipText in Accessibility Settings so the app can capture your screen on Double-Shake."
                     },
                     color = SnipColors.TextSecondary,
                     fontSize = 13.5.sp,
@@ -437,7 +444,7 @@ private fun HowItWorksCard() {
                 fontSize = 14.5.sp,
                 fontWeight = FontWeight.SemiBold
             )
-            StepRow("1", "Tap Vol Up + Vol Down together to freeze any screen.")
+            StepRow("1", "Shake your phone twice (or tap Vol Up + Down) to freeze any screen.")
             StepRow("2", "Drag a box over the text you want to capture.")
             StepRow("3", "Edit, share, or copy instantly — 100% offline.")
         }
@@ -478,12 +485,59 @@ private fun SettingsCard(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "Preferences",
+                text = "Triggers & Preferences",
                 color = SnipColors.TextPrimary,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.SemiBold
             )
 
+            ToggleRow(
+                title = "Double-Shake to Snip",
+                subtitle = "Shake twice while screen is on (zero pocket drain)",
+                checked = settings.shakeEnabled,
+                onCheckedChange = { onChange(settings.copy(shakeEnabled = it)) }
+            )
+
+            if (settings.shakeEnabled) {
+                Column {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Shake Sensitivity",
+                            color = SnipColors.TextPrimary,
+                            fontSize = 13.5.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Text(
+                            text = "${settings.shakeSensitivity} / 10",
+                            color = SnipColors.Accent,
+                            fontSize = 13.sp
+                        )
+                    }
+                    Slider(
+                        value = settings.shakeSensitivity.toFloat(),
+                        onValueChange = {
+                            onChange(settings.copy(shakeSensitivity = it.roundToInt().coerceIn(1, 10)))
+                        },
+                        valueRange = 1f..10f,
+                        steps = 8,
+                        colors = SliderDefaults.colors(
+                            thumbColor = SnipColors.TextPrimary,
+                            activeTrackColor = SnipColors.TextPrimary,
+                            inactiveTrackColor = SnipColors.SurfaceElevated
+                        )
+                    )
+                }
+            }
+
+            ToggleRow(
+                title = "Vol Up + Vol Down Combo",
+                subtitle = "Keep hardware volume chord enabled as backup",
+                checked = settings.volumeComboEnabled,
+                onCheckedChange = { onChange(settings.copy(volumeComboEnabled = it)) }
+            )
             ToggleRow(
                 title = "Instant Grab on Release",
                 subtitle = "Run OCR immediately when you lift your finger",
@@ -508,37 +562,6 @@ private fun SettingsCard(
                 checked = settings.hapticEnabled,
                 onCheckedChange = { onChange(settings.copy(hapticEnabled = it)) }
             )
-
-            Column {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "Button Combo Window",
-                        color = SnipColors.TextPrimary,
-                        fontSize = 13.5.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Text(
-                        text = "${settings.chordWindowMs} ms",
-                        color = SnipColors.Accent,
-                        fontSize = 13.sp
-                    )
-                }
-                Slider(
-                    value = settings.chordWindowMs.toFloat(),
-                    onValueChange = {
-                        onChange(settings.copy(chordWindowMs = it.roundToInt()))
-                    },
-                    valueRange = 120f..360f,
-                    colors = SliderDefaults.colors(
-                        thumbColor = SnipColors.TextPrimary,
-                        activeTrackColor = SnipColors.TextPrimary,
-                        inactiveTrackColor = SnipColors.SurfaceElevated
-                    )
-                )
-            }
         }
     }
 }

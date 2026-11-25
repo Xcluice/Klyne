@@ -47,9 +47,9 @@ jobs:
           name: SnipText v1.0.${{ github.run_number }}
           body: |
             SnipText v1.0.${{ github.run_number }}
-            - Press Vol Up + Vol Down anywhere to freeze the screen and select any text region
+            - Double-Shake to Snip: shake twice anywhere (screen-on only, adjustable sensitivity 1-10)
+            - Also supports Vol Up + Vol Down combo and Quick Settings tile
             - Offline on-device OCR with editable preview, one-tap copy, auto-copy, and line-break joining
             - Hybrid capture engine (Android 11+ native screenshot & Android 8.0-10 MediaProjection)
-            - Monochrome animated UI, Quick Settings tile, and recent grab history
           files: |
             SnipText-release.apk

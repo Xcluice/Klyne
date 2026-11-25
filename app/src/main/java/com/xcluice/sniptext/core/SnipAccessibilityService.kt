@@ -1,10 +1,13 @@
 package com.xcluice.sniptext.core
 
 import android.accessibilityservice.AccessibilityService
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.Bitmap
 import android.os.Build
+import android.os.PowerManager
 import android.os.SystemClock
 import android.os.VibrationEffect
 import android.os.Vibrator
@@ -19,6 +22,8 @@ class SnipAccessibilityService : AccessibilityService() {
 
     private var overlayManager: SelectionOverlayManager? = null
     private var store: SettingsStore? = null
+    private var shakeDetector: ShakeDetector? = null
+    private var screenReceiver: BroadcastReceiver? = null
 
     private var volUpPressed = false
     private var volDownPressed = false
@@ -32,6 +37,49 @@ class SnipAccessibilityService : AccessibilityService() {
         store = SettingsStore(this)
         val wm = getSystemService(Context.WINDOW_SERVICE) as WindowManager
         overlayManager = SelectionOverlayManager(this, wm)
+
+        shakeDetector = ShakeDetector(this) {
+            onGestureTriggered()
+        }
+
+        screenReceiver = object : BroadcastReceiver() {
+            override fun onReceive(ctx: Context?, intent: Intent?) {
+                when (intent?.action) {
+                    Intent.ACTION_SCREEN_ON, Intent.ACTION_USER_PRESENT -> syncShakeListener()
+                    Intent.ACTION_SCREEN_OFF -> shakeDetector?.stop()
+                }
+            }
+        }
+        val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_SCREEN_ON)
+            addAction(Intent.ACTION_SCREEN_OFF)
+            addAction(Intent.ACTION_USER_PRESENT)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(screenReceiver, filter, RECEIVER_NOT_EXPORTED)
+        } else {
+            @Suppress("UnspecifiedRegisterReceiverFlag")
+            registerReceiver(screenReceiver, filter)
+        }
+
+        reloadSettings()
+    }
+
+    fun reloadSettings() {
+        val settings = store?.loadSettings() ?: return
+        shakeDetector?.sensitivity = settings.shakeSensitivity
+        syncShakeListener()
+    }
+
+    private fun syncShakeListener() {
+        val settings = store?.loadSettings() ?: return
+        val pm = getSystemService(Context.POWER_SERVICE) as? PowerManager
+        val screenOn = pm?.isInteractive ?: true
+        if (settings.shakeEnabled && screenOn) {
+            shakeDetector?.start()
+        } else {
+            shakeDetector?.stop()
+        }
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) = Unit
@@ -41,18 +89,31 @@ class SnipAccessibilityService : AccessibilityService() {
     }
 
     override fun onDestroy() {
+        shakeDetector?.stop()
+        screenReceiver?.let {
+            try {
+                unregisterReceiver(it)
+            } catch (_: Exception) {
+            }
+        }
+        screenReceiver = null
         overlayManager?.dismiss()
         if (instance === this) instance = null
         super.onDestroy()
     }
 
     override fun onKeyEvent(event: KeyEvent): Boolean {
+        val settings = store?.loadSettings()
+        if (settings?.volumeComboEnabled == false) {
+            return super.onKeyEvent(event)
+        }
+
         val keyCode = event.keyCode
         if (keyCode != KeyEvent.KEYCODE_VOLUME_UP && keyCode != KeyEvent.KEYCODE_VOLUME_DOWN) {
             return super.onKeyEvent(event)
         }
 
-        val chordWindow = (store?.loadSettings()?.chordWindowMs ?: 220).toLong()
+        val chordWindow = (settings?.chordWindowMs ?: 220).toLong()
         val now = SystemClock.uptimeMillis()
 
         when (event.action) {
@@ -65,7 +126,7 @@ class SnipAccessibilityService : AccessibilityService() {
                     volUpDownAt = now
                     if (volDownPressed && (now - volDownDownAt) <= chordWindow) {
                         comboActive = true
-                        onComboTriggered()
+                        onGestureTriggered()
                         return true
                     }
                 } else {
@@ -73,7 +134,7 @@ class SnipAccessibilityService : AccessibilityService() {
                     volDownDownAt = now
                     if (volUpPressed && (now - volUpDownAt) <= chordWindow) {
                         comboActive = true
-                        onComboTriggered()
+                        onGestureTriggered()
                         return true
                     }
                 }
@@ -96,7 +157,7 @@ class SnipAccessibilityService : AccessibilityService() {
         return super.onKeyEvent(event)
     }
 
-    private fun onComboTriggered() {
+    private fun onGestureTriggered() {
         val haptic = store?.loadSettings()?.hapticEnabled ?: true
         if (haptic) {
             val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator

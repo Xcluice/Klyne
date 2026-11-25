@@ -11,6 +11,9 @@ data class GrabHistoryItem(
 )
 
 data class SnipSettings(
+    val shakeEnabled: Boolean = true,
+    val shakeSensitivity: Int = 6,
+    val volumeComboEnabled: Boolean = true,
     val autoCopy: Boolean = false,
     val joinLineBreaks: Boolean = true,
     val instantGrab: Boolean = true,
@@ -22,6 +25,9 @@ class SettingsStore(context: Context) {
     private val prefs = context.getSharedPreferences("sniptext_prefs", Context.MODE_PRIVATE)
 
     fun loadSettings(): SnipSettings = SnipSettings(
+        shakeEnabled = prefs.getBoolean(KEY_SHAKE_ENABLED, true),
+        shakeSensitivity = prefs.getInt(KEY_SHAKE_SENS, 6).coerceIn(1, 10),
+        volumeComboEnabled = prefs.getBoolean(KEY_VOL_COMBO, true),
         autoCopy = prefs.getBoolean(KEY_AUTO_COPY, false),
         joinLineBreaks = prefs.getBoolean(KEY_JOIN_LINES, true),
         instantGrab = prefs.getBoolean(KEY_INSTANT_GRAB, true),
@@ -31,6 +37,9 @@ class SettingsStore(context: Context) {
 
     fun saveSettings(settings: SnipSettings) {
         prefs.edit()
+            .putBoolean(KEY_SHAKE_ENABLED, settings.shakeEnabled)
+            .putInt(KEY_SHAKE_SENS, settings.shakeSensitivity)
+            .putBoolean(KEY_VOL_COMBO, settings.volumeComboEnabled)
             .putBoolean(KEY_AUTO_COPY, settings.autoCopy)
             .putBoolean(KEY_JOIN_LINES, settings.joinLineBreaks)
             .putBoolean(KEY_INSTANT_GRAB, settings.instantGrab)
@@ -92,6 +101,9 @@ class SettingsStore(context: Context) {
     }
 
     companion object {
+        private const val KEY_SHAKE_ENABLED = "shake_enabled"
+        private const val KEY_SHAKE_SENS = "shake_sensitivity"
+        private const val KEY_VOL_COMBO = "vol_combo_enabled"
         private const val KEY_AUTO_COPY = "auto_copy"
         private const val KEY_JOIN_LINES = "join_lines"
         private const val KEY_INSTANT_GRAB = "instant_grab"
