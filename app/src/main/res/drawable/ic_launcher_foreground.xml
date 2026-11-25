@@ -4,14 +4,43 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Minimalist architectural K monogram -->
     <path
-        android:fillColor="#F5F5F7"
-        android:pathData="M34,30 L44,30 L44,78 L34,78 Z" />
+        android:pathData="M31,43 L31,33 Q31,31 33,31 L43,31"
+        android:strokeWidth="4.2"
+        android:strokeColor="#F4F5F7"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
     <path
-        android:fillColor="#F5F5F7"
-        android:pathData="M62,30 L74,30 L54,53 L44,53 Z" />
+        android:pathData="M65,31 L75,31 Q77,31 77,33 L77,43"
+        android:strokeWidth="4.2"
+        android:strokeColor="#F4F5F7"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
     <path
-        android:fillColor="#A4A8B2"
-        android:pathData="M52,51 L60,51 L75,78 L63,78 Z" />
+        android:pathData="M31,65 L31,75 Q31,77 33,77 L43,77"
+        android:strokeWidth="4.2"
+        android:strokeColor="#F4F5F7"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M65,77 L75,77 Q77,77 77,75 L77,65"
+        android:strokeWidth="4.2"
+        android:strokeColor="#94A3B8"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M41,47 L67,47"
+        android:strokeWidth="3.6"
+        android:strokeColor="#F4F5F7"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M41,55 L61,55"
+        android:strokeWidth="3.6"
+        android:strokeColor="#CBD5E1"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M41,63 L54,63"
+        android:strokeWidth="3.6"
+        android:strokeColor="#94A3B8"
+        android:strokeLineCap="round" />
 </vector>

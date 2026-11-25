@@ -1,7 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Klyne</string>
-    <string name="accessibility_service_label">Klyne Gestures</string>
-    <string name="accessibility_service_description">Enables double-tap to lock screen, notification shade expansion, and quick gesture actions in Klyne Launcher.</string>
-    <string name="device_admin_label">Klyne Screen Lock</string>
+    <string name="app_name">SnipText</string>
+    <string name="accessibility_service_label">SnipText Volume Trigger</string>
+    <string name="accessibility_service_description">Listens for simultaneous Volume Up + Volume Down presses to freeze the screen, let you select a region, and copy text offline.</string>
+    <string name="tile_label">Snip Text</string>
 </resources>

@@ -1,3 +1,3 @@
--keepattributes *Annotation*
--keep class com.xcluice.klyne.core.KlyneAccessibilityService { *; }
--keep class com.xcluice.klyne.core.KlyneDeviceAdminReceiver { *; }
+-keep class com.google.mlkit.** { *; }
+-dontwarn com.google.mlkit.**
+-dontwarn com.google.android.gms.**

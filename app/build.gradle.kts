@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.xcluice.klyne"
+    namespace = "com.xcluice.sniptext"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.xcluice.klyne"
+        applicationId = "com.xcluice.sniptext"
         minSdk = 26
         targetSdk = 34
         versionCode = (project.findProperty("appCode") as String?)?.toInt() ?: 1
@@ -19,9 +19,9 @@ android {
     signingConfigs {
         create("release") {
             storeFile = file("release.jks")
-            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: "klyne2026"
-            keyAlias = System.getenv("KEY_ALIAS") ?: "klyne"
-            keyPassword = System.getenv("KEY_PASSWORD") ?: "klyne2026"
+            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: "sniptext2026"
+            keyAlias = System.getenv("KEY_ALIAS") ?: "sniptext"
+            keyPassword = System.getenv("KEY_PASSWORD") ?: "sniptext2026"
         }
     }
 
@@ -68,6 +68,6 @@ dependencies {
     implementation("androidx.compose.foundation:foundation")
     implementation("androidx.compose.animation:animation")
     implementation("androidx.compose.material3:material3")
-    implementation("androidx.palette:palette-ktx:1.0.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+    implementation("com.google.android.gms:play-services-mlkit-text-recognition:19.0.1")
 }

@@ -1,10 +1,15 @@
-# Klyne Launcher
+# SnipText
 
-A fast, One UI 9-inspired monochrome Android launcher built in Kotlin and Jetpack Compose for Android 8.0 Oreo+ (`minSdk 26`).
+Universal offline screen-text grabber for Android 8.0+ (Oreo and above).
+
+## How it works
+1. **Press Volume Up + Volume Down** simultaneously anywhere on your phone.
+2. **Drag across any area** on the frozen screen (images, videos, games, or locked apps).
+3. **Copy instantly** — on-device OCR extracts the text so you can edit, copy, or auto-copy it in one tap.
 
 ## Highlights
-- **One UI 9 Aesthetics**: Uniform squircle icons, floating frosted dock with blur toggle, pop-up folders, and bottom-anchored Finder search.
-- **Gesture Engine**: Double-tap to lock (Accessibility Service on Android 9+ with Device Admin fallback on Android 8.0–8.1), swipe down for notifications, swipe up for app drawer, pinch-in Home Editor, and two-finger swipe.
-- **3 Surface Modes**: Live switch between **Frosted Monochrome Glass**, **Pure OLED Matte / Paper White**, and **Muted Wallpaper-Tinted Monochrome**.
-- **Home Up Customization**: Grid rows/columns, icon size, dock visibility/blur/padding, labels, monochrome icon filter, vertical or paged drawer, and hidden apps.
-- **Built-in Force Updater**: Checks GitHub Releases automatically for seamless signed in-app updates.
+- **Volume Up + Down Chord Trigger** via `AccessibilityService` (consumes the combo without changing your volume).
+- **Hybrid Screen Capture**: Native `takeScreenshot()` on Android 11+ and `MediaProjection` fallback on Android 8.0–10.
+- **Offline ML Kit OCR**: Fast, private, on-device text recognition (~4 MB APK).
+- **Smart Copy Tools**: Auto-Copy on release, Join Line Breaks, Quick Settings Tile, and Recent Grabs history.
+- **Built-in Updater**: Checks GitHub Releases for newer builds and shows release notes.
